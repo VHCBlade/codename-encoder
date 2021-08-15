@@ -3,7 +3,6 @@ import 'package:codename_encoder/codename_encoder.dart';
 final stringEncoder = CharMapStringEncoder(charMap: _STRING_ENCODER_CHARS);
 
 const _STRING_ENCODER_CHARS = {
-  '0': 0,
   '1': 1,
   '2': 2,
   '3': 3,
@@ -13,7 +12,7 @@ const _STRING_ENCODER_CHARS = {
   '7': 7,
   '8': 8,
   '9': 9,
-  '.': 10,
+  '0': 10,
   '[': 11,
   ']': 12,
   ',': 13,
@@ -45,4 +44,5 @@ const _STRING_ENCODER_CHARS = {
   'x': 39,
   'y': 40,
   'z': 41,
+  '.': 42,
 };

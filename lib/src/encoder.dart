@@ -20,7 +20,8 @@ class CharMapStringEncoder implements StringEncoder {
   late final bitsUsed = _bitsUsed;
   late final int chunksPerInt = _MAX_BITS_USED ~/ bitsUsed;
   final String Function(String) mapInvalidCharacter;
-  static const _MAX_BITS_USED = 64;
+  // Can only use 52 bits because of javascript limit.
+  static const _MAX_BITS_USED = 40;
 
   int get _bitsUsed {
     for (var i = 0; true; i++) {
@@ -30,7 +31,7 @@ class CharMapStringEncoder implements StringEncoder {
     }
   }
 
-  /// Assumes that [charMap] will never change. Value map must have at most 2^64 entries.
+  /// Assumes that [charMap] will never change. Value map must have at most 2^8 entries. In addition, 0 is a reserved value that can't be used.
   CharMapStringEncoder(
       {required this.charMap,
       this.mapInvalidCharacter = _defaultMapInvalidCharacter});
@@ -39,8 +40,10 @@ class CharMapStringEncoder implements StringEncoder {
 
   @override
   String decode(String source) {
-    // TODO: implement decode
-    throw UnimplementedError();
+    final byteList = base64Decode(source);
+
+    final intList = _convertByteListToIntList(byteList);
+    return intList.map(decodeInt).reduce((value, element) => '$value$element');
   }
 
   @override
@@ -52,11 +55,11 @@ class CharMapStringEncoder implements StringEncoder {
     for (var i = 0; i < source.length / chunksPerInt; i++) {
       final stringChunk = source.substring(
           i * chunksPerInt, min(source.length, (i + 1) * chunksPerInt));
-      print(stringChunk);
 
       final encodedString = encodeStringChunk(stringChunk);
+      final byteList = _convertIntToByteList(encodedString);
 
-      intList.addAll(_convertIntToByteList(encodedString));
+      intList.addAll(byteList.sublist(0, _MAX_BITS_USED ~/ 8));
     }
 
     _removeTrailingZeroes(intList);
@@ -66,6 +69,7 @@ class CharMapStringEncoder implements StringEncoder {
 
   List<int> _convertIntToByteList(int value) =>
       Uint8List(8)..buffer.asInt64List()[0] = value;
+
   void _removeTrailingZeroes(List<int> list) {
     if (list.isEmpty) {
       return;
@@ -76,6 +80,23 @@ class CharMapStringEncoder implements StringEncoder {
         return;
       }
     }
+  }
+
+  List<int> _convertByteListToIntList(Uint8List bytes) {
+    final intList = <int>[];
+    for (var i = 0; i * _MAX_BITS_USED ~/ 8 < bytes.length; i++) {
+      final list = bytes.sublist(
+          max(0, bytes.length - (i + 1) * _MAX_BITS_USED ~/ 8),
+          bytes.length - i * _MAX_BITS_USED ~/ 8);
+
+      var val = 0;
+      for (var j = 0; j < list.length; j++) {
+        val += list[j] * pow(2, j * 8).toInt();
+      }
+      intList.insert(0, val);
+    }
+
+    return intList;
   }
 
   /// Encodes the [stringChunk] into the bits of an int.
@@ -94,6 +115,25 @@ class CharMapStringEncoder implements StringEncoder {
       }
 
       retVal += charMap[value]! * pow(2, i * bitsUsed).toInt();
+    }
+
+    return retVal;
+  }
+
+  /// Decodes the given int back to the original value that was passed to []
+  String decodeInt(int value) {
+    final binary = value.toRadixString(2);
+
+    var retVal = '';
+    for (var i = 0; i * bitsUsed < binary.length; i++) {
+      final charcode = int.parse(
+          binary.substring(max(0, binary.length - (i + 1) * bitsUsed),
+              binary.length - i * bitsUsed),
+          radix: 2);
+
+      retVal += charMap.entries
+          .firstWhere((element) => element.value == charcode)
+          .key;
     }
 
     return retVal;

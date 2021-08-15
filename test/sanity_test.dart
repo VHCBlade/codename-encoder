@@ -4,12 +4,14 @@ import 'package:codename_encoder/codename_encoder.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('IntListStringEncoder', () {
-    test('Encoding', () => encodingTest(intListEncoder));
-  });
-  group('IntEncoder', () {
-    test('Encoding', () => encodingTest(intEncoder));
-    test('Encoding', () => encodingTest(stringEncoder));
+  group('Sanity', () {
+    group('IntListStringEncoder', () {
+      test('Encoding', () => encodingTest(intListEncoder));
+    });
+    group('IntEncoder', () {
+      test('Encoding', () => encodingTest(intEncoder));
+      test('Encoding', () => encodingTest(stringEncoder));
+    });
   });
 }
 
