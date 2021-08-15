@@ -85,15 +85,14 @@ class CharMapStringEncoder implements StringEncoder {
   List<int> _convertByteListToIntList(Uint8List bytes) {
     final intList = <int>[];
     for (var i = 0; i * _MAX_BITS_USED ~/ 8 < bytes.length; i++) {
-      final list = bytes.sublist(
-          max(0, bytes.length - (i + 1) * _MAX_BITS_USED ~/ 8),
-          bytes.length - i * _MAX_BITS_USED ~/ 8);
+      final list = bytes.sublist(i * _MAX_BITS_USED ~/ 8,
+          min(bytes.length, (i + 1) * _MAX_BITS_USED ~/ 8));
 
       var val = 0;
       for (var j = 0; j < list.length; j++) {
         val += list[j] * pow(2, j * 8).toInt();
       }
-      intList.insert(0, val);
+      intList.add(val);
     }
 
     return intList;

@@ -1,5 +1,6 @@
 import 'package:codename_encoder/codename_encoder.dart';
 
+/// Hasn't been tested yet and thus shouldn't be used.
 final stringEncoder = CharMapStringEncoder(charMap: _STRING_ENCODER_CHARS);
 
 const _STRING_ENCODER_CHARS = {
@@ -45,4 +46,14 @@ const _STRING_ENCODER_CHARS = {
   'y': 40,
   'z': 41,
   '.': 42,
+  '?': 43,
+  '!': 44,
+  '<': 45,
+  '>': 46,
+  '^': 47,
+  "'": 48,
+  '@': 49,
+  '\$': 50,
+  '#': 51,
+  '%': 52,
 };
